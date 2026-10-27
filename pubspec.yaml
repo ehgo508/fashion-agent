@@ -1,0 +1,23 @@
+name: fashion_agent
+description: 시각장애인을 위한 날씨 기반 패션 색 조합 추천 앱
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  camera: ^0.11.0
+  flutter_tts: ^4.0.2
+  geolocator: ^13.0.1
+  http: ^1.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
