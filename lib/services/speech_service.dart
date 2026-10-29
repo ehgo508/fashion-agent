@@ -7,12 +7,14 @@ class SpeechService {
     _tts.setCompletionHandler(() => _speaking = false);
     _tts.setCancelHandler(() => _speaking = false);
     _tts.setErrorHandler((_) => _speaking = false);
+    // 안내가 끝난 뒤 다음 안내로 넘어가도록 speak가 읽기를 마칠 때까지 기다리게 한다.
+    _tts.awaitSpeakCompletion(true);
   }
 
   final FlutterTts _tts = FlutterTts();
   bool _speaking = false;
 
-  /// 읽고 있던 안내를 끊고 [text]를 읽는다.
+  /// 읽고 있던 안내를 끊고 [text]를 읽는다. 다 읽을 때까지 기다린다.
   Future<void> speak(String text) async {
     await _tts.setLanguage('ko-KR');
     if (_speaking) {
