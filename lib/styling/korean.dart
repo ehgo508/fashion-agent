@@ -15,6 +15,7 @@ String iGa(String word) => josa(word, '이', '가');
 String gwaWa(String word) => josa(word, '과', '와');
 String euro(String word) => josa(word, '으로', '로');
 String ira(String word) => josa(word, '이라', '라');
+String ieyo(String word) => josa(word, '이에요', '예요');
 
 /// 마지막 글자의 종성 번호. 받침이 없거나 한글이 아니면 0.
 int _batchim(String word) {

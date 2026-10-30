@@ -35,6 +35,9 @@ class SessionController extends ChangeNotifier {
   final VisionService vision;
   final WardrobeStore wardrobe;
 
+  /// 에이전트에서 열었을 때, 끝나고 돌아갈 곳. 있으면 완료 버튼이 "돌아가기"가 된다.
+  VoidCallback? onFinished;
+
   SessionStep step = SessionStep.idle;
   bool busy = false;
 
@@ -59,7 +62,7 @@ class SessionController extends ChangeNotifier {
         SessionStep.capturingOutfit => '고른 옷 찍기',
         SessionStep.analyzing => '분석 중',
         SessionStep.feedback || SessionStep.outerAdvice => '다음',
-        SessionStep.done => '처음부터',
+        SessionStep.done => onFinished == null ? '처음부터' : '돌아가기',
         SessionStep.capturingCloset => '옷장 찍기',
         SessionStep.alternative => '꺼냈어요',
         SessionStep.checkingPicked => '꺼낸 옷 찍기',
@@ -83,6 +86,18 @@ class SessionController extends ChangeNotifier {
     await _askForOutfit();
   }
 
+  /// 에이전트의 "옷 검사". 날씨는 이미 에이전트가 말했을 수 있으니 조용히 가져와 판단에만 쓴다.
+  Future<void> startOutfitCheck() async {
+    feedback = null;
+    _set(SessionStep.briefing);
+    try {
+      weather = await weatherService.fetchTodayWeather();
+    } catch (_) {
+      weather = null;
+    }
+    await _askForOutfit();
+  }
+
   /// 화면 위쪽 큰 버튼.
   Future<void> primary() async {
     if (busy) return;
@@ -102,7 +117,11 @@ class SessionController extends ChangeNotifier {
       case SessionStep.outerAdvice:
         await _finish();
       case SessionStep.done:
-        await _askForOutfit();
+        if (onFinished != null) {
+          onFinished!();
+        } else {
+          await _askForOutfit();
+        }
       case SessionStep.capturingCloset:
         await _scanCloset();
       case SessionStep.alternative:

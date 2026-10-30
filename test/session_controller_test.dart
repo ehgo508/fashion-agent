@@ -115,6 +115,26 @@ void main() {
     expect(speech.spoken.last, contains('너무 어두워요'));
   });
 
+  test('에이전트에서 열면 날씨 안내 없이 옷 검사부터 하고, 끝나면 돌아간다', () async {
+    final speech = FakeSpeech();
+    final c = controllerWith(speech: speech);
+    var finished = false;
+    c.onFinished = () => finished = true;
+    await c.startOutfitCheck();
+
+    expect(speech.spoken, hasLength(1));
+    expect(speech.spoken.single, contains('펼쳐 놓고'));
+    expect(c.weather, isNotNull);
+
+    await c.primary(); // 고른 옷 찍기
+    await c.primary(); // 다음 → 겉옷
+    await c.primary(); // 완료
+    expect(c.step, SessionStep.done);
+    expect(c.primaryLabel, '돌아가기');
+    await c.primary();
+    expect(finished, isTrue);
+  });
+
   testWidgets('화면은 위·아래 두 개의 큰 버튼이다', (tester) async {
     final c = controllerWith();
     await tester.pumpWidget(MaterialApp(home: SessionScreen(controller: c)));

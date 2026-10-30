@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
-import 'screens/session_screen.dart';
+import 'agent/agent_controller.dart';
+import 'agent/onboarding_flow.dart';
+import 'screens/agent_screen.dart';
+import 'services/account_service.dart';
 import 'services/capture_service.dart';
 import 'services/fake_vision_service.dart';
+import 'services/listen_service.dart';
+import 'services/profile_store.dart';
 import 'services/speech_service.dart';
 import 'services/vision_service.dart';
 import 'services/wardrobe_store.dart';
@@ -17,10 +22,27 @@ const _visionUrl = String.fromEnvironment('VISION_URL');
 const _fakeCamera = bool.fromEnvironment('FAKE_CAMERA');
 
 void main() {
+  final speech = SpeechService();
+  final listen = DeviceListenService();
+  final profiles = LocalProfileStore();
+  final weather = WeatherService();
   runApp(FashionAgentApp(
-    controller: SessionController(
-      speech: SpeechService(),
-      weatherService: WeatherService(),
+    agent: AgentController(
+      speech: speech,
+      listen: listen,
+      profiles: profiles,
+      weatherService: weather,
+      onboarding: OnboardingFlow(
+        speech: speech,
+        listen: listen,
+        profiles: profiles,
+        // TODO(계정 담당): docs/ACCOUNT.md대로 Firebase를 붙인 뒤 FirebaseAccountService로 바꾼다.
+        account: DeviceOnlyAccountService(),
+      ),
+    ),
+    outfitCheck: SessionController(
+      speech: speech,
+      weatherService: weather,
       capture: _fakeCamera ? FakeCaptureService() : CameraCaptureService(),
       vision: _visionUrl.isEmpty
           ? FakeVisionService()
@@ -31,9 +53,11 @@ void main() {
 }
 
 class FashionAgentApp extends StatelessWidget {
-  const FashionAgentApp({super.key, required this.controller});
+  const FashionAgentApp(
+      {super.key, required this.agent, required this.outfitCheck});
 
-  final SessionController controller;
+  final AgentController agent;
+  final SessionController outfitCheck;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +67,7 @@ class FashionAgentApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
       ),
-      home: SessionScreen(controller: controller),
+      home: AgentScreen(agent: agent, outfitCheck: outfitCheck),
     );
   }
 }

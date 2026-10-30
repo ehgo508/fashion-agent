@@ -6,9 +6,13 @@ import '../session/session_controller.dart';
 ///
 /// VoiceOver를 켠 사용자도 화면 어디를 눌러도 버튼을 찾을 수 있게, 작은 버튼은 두지 않는다.
 class SessionScreen extends StatefulWidget {
-  const SessionScreen({super.key, required this.controller});
+  const SessionScreen(
+      {super.key, required this.controller, this.outfitCheckOnly = false});
 
   final SessionController controller;
+
+  /// 에이전트에서 열었으면 날씨 안내 없이 바로 옷 검사부터 한다.
+  final bool outfitCheckOnly;
 
   @override
   State<SessionScreen> createState() => _SessionScreenState();
@@ -20,7 +24,8 @@ class _SessionScreenState extends State<SessionScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _c.start());
+    WidgetsBinding.instance.addPostFrameCallback(
+        (_) => widget.outfitCheckOnly ? _c.startOutfitCheck() : _c.start());
   }
 
   @override
@@ -34,7 +39,7 @@ class _SessionScreenState extends State<SessionScreen> {
             children: [
               Expanded(
                 flex: 3,
-                child: _BigButton(
+                child: BigButton(
                   label: _c.primaryLabel,
                   detail: _c.message,
                   hint: _c.message,
@@ -44,7 +49,7 @@ class _SessionScreenState extends State<SessionScreen> {
               ),
               Expanded(
                 flex: 2,
-                child: _BigButton(
+                child: BigButton(
                   label: _c.secondaryLabel,
                   onTap: _c.busy ? null : _c.secondary,
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -58,8 +63,10 @@ class _SessionScreenState extends State<SessionScreen> {
   }
 }
 
-class _BigButton extends StatelessWidget {
-  const _BigButton({
+/// 화면 절반을 차지하는 버튼. VoiceOver가 [label]과 [hint]만 읽게 한다.
+class BigButton extends StatelessWidget {
+  const BigButton({
+    super.key,
     required this.label,
     required this.onTap,
     required this.color,
